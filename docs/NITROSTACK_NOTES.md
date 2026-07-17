@@ -163,3 +163,10 @@ Guards read `ctx.metadata?.authorization` / `ctx.metadata?.['x-api-key']` and se
 3. Whether hackathon "Platform Credits" top up the Free-plan 5.0M tokens / $0.50 NitroChat (ask mentor desk).
 4. Prompt return shape on the wire: scaffold uses bare `[{role,content}]`; skill shows `{messages:[...]}`. Use the
    scaffold form; confirm in NitroStudio at Phase 5.
+
+## Prod-mode smoke (17 Jul, local) — known-benign log noise
+`NODE_ENV=production node dist/index.js` boots DUAL MODE (stdio + Streamable HTTP `/mcp` + legacy SSE `/sse`).
+GET `/` and `/mcp` → 200; `initialize` over POST `/mcp` answers correctly.
+KNOWN-BENIGN: one startup error `Failed to instantiate provider OAuthModule … Cannot resolve token "OAUTH_CONFIG"` —
+the framework's built-in OAuth module tries to self-instantiate without `OAuthModule.forRoot()` config (we don't use OAuth).
+Server continues and serves normally. Ignore in cloud logs.

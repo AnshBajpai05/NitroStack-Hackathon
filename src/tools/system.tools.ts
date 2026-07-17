@@ -10,10 +10,17 @@ export const SERVER_VERSION = '1.0.0';
 export class SystemTools {
   @Tool({
     name: 'health_check',
-    description: 'Liveness probe. Returns {ok:true, version, server, ts}. Use to verify the deployment is reachable.',
+    description: 'Liveness probe. Returns {ok:true, version, commit, server, ts}. Use to verify the deployment is reachable and which build is live.',
     inputSchema: z.object({}),
   })
   async health_check(_input: any, _ctx: ExecutionContext) {
-    return { ok: true, version: SERVER_VERSION, server: 'vitta-lending', ts: new Date().toISOString() };
+    return {
+      ok: true,
+      version: SERVER_VERSION,
+      commit: process.env.GIT_COMMIT ?? process.env.SOURCE_VERSION ?? 'local',
+      consent_secret_configured: Boolean(process.env.CONSENT_SECRET && process.env.CONSENT_SECRET.length >= 16),
+      server: 'vitta-lending',
+      ts: new Date().toISOString(),
+    };
   }
 }

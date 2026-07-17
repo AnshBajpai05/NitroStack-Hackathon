@@ -14,11 +14,20 @@ import type { ConsentPayload, ConsentScope, ConsentFailureCode, ConsentRefusal }
 export const CONSENT_TTL_SECONDS = 900; // 15 minutes
 export const ALL_SCOPES: ConsentScope[] = ['CREDIT_BUREAU', 'BANK_STATEMENTS', 'KYC'];
 
+let warnedDevSecret = false;
 function secret(): string {
   const s = process.env.CONSENT_SECRET;
   if (s && s.length >= 16) return s;
   // Deterministic dev fallback so local dev + tests work without .env.
-  // Production MUST set a strong CONSENT_SECRET (see .env.example / deploy checklist).
+  // The repo is public — this fallback is world-readable, so tokens signed with
+  // it are FORGEABLE. Production MUST set a strong CONSENT_SECRET.
+  if (process.env.NODE_ENV === 'production' && !warnedDevSecret) {
+    warnedDevSecret = true;
+    console.error(
+      '[VITTA SECURITY] CONSENT_SECRET is not set in production — consent tokens are signed ' +
+        'with the public dev fallback and can be forged. Set CONSENT_SECRET in the deployment env NOW.',
+    );
+  }
   return 'vitta-dev-consent-secret-change-in-prod';
 }
 
