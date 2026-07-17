@@ -112,6 +112,25 @@ describe('golden path — three deterministic stories', () => {
     expect(d48.outcome).toBe('CONDITIONAL'); // score band still needs review
   });
 
+  it('every offer is itself FOIR-serviceable (agent-found bug #2)', () => {
+    // A shorter-tenure offer at max_amount can breach the FOIR cap that set
+    // max_amount. Demo pair: ₹2.5L @ 24m → EMI 12,237 → FOIR 60% > 55% cap.
+    const s = 'sess-foir-offers';
+    const { lead_id, consent_token } = intake(s, 'VITTA1235K', '9876543222');
+    pullBureau({ session_id: s, lead_id, consent_token, pan: 'VITTA1235K' });
+    fetchBankStatements({ session_id: s, lead_id, consent_token });
+    const aff = computeAffordabilityStep({ session_id: s, lead_id });
+    underwriteStep({ session_id: s, lead_id });
+    const { offers } = generateOffersStep({ session_id: s, lead_id });
+    expect(offers.length).toBeGreaterThanOrEqual(1);
+    for (const o of offers) {
+      const foir = (aff.existing_emi + o.emi) / aff.net_income;
+      expect(foir).toBeLessThanOrEqual(0.55 + 1e-9);
+    }
+    // the 24-month tenure specifically must have been filtered out
+    expect(offers.some((o) => o.tenure_months === 24)).toBe(false);
+  });
+
   it('audit trail redacts PII — raw demo PAN never stored in clear', () => {
     const s = 'sess-redact';
     const { lead_id, consent_token } = intake(s, 'VITTA1235K', '9876543222');

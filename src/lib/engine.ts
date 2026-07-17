@@ -183,6 +183,9 @@ export function generateOffersStep(input: { session_id: string; lead_id: string 
     decision: rec.decision,
     tenure_months: rec.tenure_months ?? 36,
     intent_flag: rec.intent_flag,
+    affordability: rec.affordability
+      ? { existing_emi: rec.affordability.existing_emi, net_income: rec.affordability.net_income }
+      : undefined,
   });
   store.patchCase(input.lead_id, { offers: result.offers, recommended_offer_id: result.recommended_offer_id });
   store.audit(input.session_id, 'generate_offers', 'OFFERS_GENERATED', { lead_id: input.lead_id, count: result.offers.length, recommended: result.recommended_offer_id });

@@ -12,6 +12,10 @@ export function generateOffers(args: {
   tenure_months: number;
   intent_flag?: 'FAST_TRACK' | 'STANDARD';
   existing_customer?: boolean;
+  /** FOIR guard: when provided, candidate tenures whose EMI would breach the
+   *  FOIR cap at max_amount are dropped (shorter tenure = higher EMI — the
+   *  approved amount is only serviceable at tenures ≥ the underwritten one). */
+  affordability?: { existing_emi: number; net_income: number };
 }): { offers: Offer[]; recommended_offer_id: string } {
   const { decision } = args;
   if (decision.outcome === 'DECLINE' || decision.max_amount <= 0) {
@@ -25,7 +29,17 @@ export function generateOffers(args: {
 
   // candidate tenures around the requested tenure, clamped to policy grid
   const t = clampTenure(args.tenure_months);
-  const tenures = uniq([clampTenure(t - 12), t, clampTenure(t + 12)]).slice(0, 3);
+  let tenures = uniq([clampTenure(t - 12), t, clampTenure(t + 12)]).slice(0, 3);
+
+  // FOIR guard: every offer must itself be serviceable (agent-found bug #2:
+  // a shorter-tenure offer at max_amount can breach the cap that set max_amount)
+  if (args.affordability) {
+    const { existing_emi, net_income } = args.affordability;
+    const serviceable = tenures.filter(
+      (tn) => (existing_emi + computeEmi(amount, rate, tn)) / net_income <= POLICY.foir_cap + 1e-9,
+    );
+    if (serviceable.length) tenures = serviceable;
+  }
 
   const offers: Offer[] = tenures.map((tenure, i) => {
     const emi = computeEmi(amount, rate, tenure);

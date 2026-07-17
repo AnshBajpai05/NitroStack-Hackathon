@@ -47,11 +47,10 @@
           "name": "Three offers (FAST_TRACK)",
           "description": "Lowest EMI recommended for a medical emergency",
           "data": {
-            "recommended_offer_id": "VITTA-DEMO-OF3",
+            "recommended_offer_id": "VITTA-DEMO-OF2",
             "offers": [
-              { "offer_id": "VITTA-DEMO-OF3", "amount": 250000, "tenure_months": 48, "roi_annual_pct": 15.99, "emi": 7084, "processing_fee_pct": 1.5, "apr_pct": 17.5, "total_cost": 343782, "valid_till": "2026-08-31T23:59:59+05:30", "recommended": true, "why_recommended": "Lowest monthly EMI (₹7,084) — eases your immediate cash burden for a time-sensitive need." },
-              { "offer_id": "VITTA-DEMO-OF2", "amount": 250000, "tenure_months": 36, "roi_annual_pct": 15.99, "emi": 8788, "processing_fee_pct": 1.5, "apr_pct": 17.44, "total_cost": 320118, "valid_till": "2026-08-31T23:59:59+05:30", "recommended": false },
-              { "offer_id": "VITTA-DEMO-OF1", "amount": 250000, "tenure_months": 24, "roi_annual_pct": 15.99, "emi": 12237, "processing_fee_pct": 1.5, "apr_pct": 17.3, "total_cost": 297438, "valid_till": "2026-08-31T23:59:59+05:30", "recommended": false }
+              { "offer_id": "VITTA-DEMO-OF2", "amount": 250000, "tenure_months": 48, "roi_annual_pct": 15.99, "emi": 7084, "processing_fee_pct": 1.5, "apr_pct": 17.5, "total_cost": 343782, "valid_till": "2026-08-31T23:59:59+05:30", "recommended": true, "why_recommended": "Lowest monthly EMI (₹7,084) — eases your immediate cash burden for a time-sensitive need." },
+              { "offer_id": "VITTA-DEMO-OF1", "amount": 250000, "tenure_months": 36, "roi_annual_pct": 15.99, "emi": 8788, "processing_fee_pct": 1.5, "apr_pct": 17.44, "total_cost": 320118, "valid_till": "2026-08-31T23:59:59+05:30", "recommended": false }
             ]
           }
         }
