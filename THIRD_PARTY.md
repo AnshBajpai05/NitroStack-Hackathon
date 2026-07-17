@@ -25,9 +25,15 @@ _No PDF library was added: the sanction letter is generated as self-contained HT
 hash (see `src/lib/sanction.ts`), keeping the dependency surface minimal (CLAUDE.md rule 7). HTML→PDF is a
 documented Phase-7 upgrade._
 
+## External APIs
+| API | Auth | Purpose | Notes |
+|---|---|---|---|
+| Frankfurter (api.frankfurter.app) | none (free, open) | `get_reference_rates` — LIVE INR reference FX rates (ECB data) | Non-PII macro data only. Graceful cached fallback if offline. |
+
 ## Data
 All bureau / bank / KYC / fraud data are **synthetic deterministic mocks** in `/mocks/*.json`,
-keyed by PAN last digit and mobile suffix. **No real PII, no real external APIs, ever.**
+keyed by PAN last digit and mobile suffix. **No real PII APIs (bureau/AA/KYC), no real PII, ever.**
+The only live external call is the non-PII reference-rate feed above.
 
 ## AI assistance
 Claude Code (Anthropic) used for implementation per admin rule R22. Architecture and

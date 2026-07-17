@@ -2,7 +2,7 @@
  * document.tools.ts — MCP tool 10 (create_sanction_letter).
  * Merges T&Cs + amortization, system-signs, returns a downloadable letter + SHA256 hash.
  */
-import { ToolDecorator as Tool, ControllerDecorator as Controller, ExecutionContext, z } from '@nitrostack/core';
+import { ToolDecorator as Tool, ControllerDecorator as Controller, Widget, ExecutionContext, z } from '@nitrostack/core';
 import { createSanctionStep } from '../lib/engine.js';
 
 @Controller()
@@ -17,6 +17,7 @@ export class DocumentTools {
       offer_id: z.string().describe('offer_id chosen from generate_offers.'),
     }),
   })
+  @Widget('sanction-letter')
   async create_sanction_letter(input: any, ctx: ExecutionContext) {
     return createSanctionStep(input);
   }

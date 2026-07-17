@@ -81,39 +81,64 @@ export class VittaPrompts {
 
   @Prompt({
     name: 'adverse-action-notice',
-    description: 'Compliant, respectful decline explanation (RBI/DPDP-aligned adverse action).',
-    arguments: [{ name: 'reason_codes', description: 'Comma-separated reason codes from a DECLINE.', required: true }],
+    description:
+      'Compliant, respectful decline explanation (RBI/DPDP-aligned adverse action). Localised: language="hindi" or "malayalam" for the vernacular framing.',
+    arguments: [
+      { name: 'reason_codes', description: 'Comma-separated reason codes from a DECLINE.', required: true },
+      { name: 'language', description: 'Preferred language: english (default), hindi, malayalam.', required: false },
+    ],
   })
   async adverseActionNotice(args: any, _ctx: ExecutionContext): Promise<Msg[]> {
+    const lang = String(args?.language ?? 'english').toLowerCase();
+    const guides: Record<string, string> = {
+      english:
+        'Say clearly and kindly that we cannot approve right now, then give the specific, factual reasons (mapped from the codes). ' +
+        'Provide a short, achievable improvement path and a realistic reapply window. Include the applicant\'s right to the reasons ' +
+        'and to dispute bureau data. Tone: respectful, never "we regret to inform you". End with a genuine door left open.',
+      hindi:
+        'उत्तर हिंदी में लिखें। साफ़ और सम्मान से बताएं कि अभी हम यह लोन स्वीकृत नहीं कर सकते, फिर कोड से जुड़े ठोस, तथ्यात्मक कारण दें। ' +
+        'एक छोटा, व्यावहारिक सुधार-रास्ता और दोबारा आवेदन की यथार्थ समय-सीमा बताएं। आवेदक का यह अधिकार भी बताएं कि वे कारण जान सकते हैं ' +
+        'और ब्यूरो डेटा पर आपत्ति कर सकते हैं। लहजा: सम्मानजनक — "हमें खेद है" जैसी घिसी-पिटी भाषा नहीं। अंत सकारात्मक रखें: दरवाज़ा खुला है।',
+      malayalam:
+        'മറുപടി മലയാളത്തിൽ എഴുതുക. ഇപ്പോൾ വായ്പ അനുവദിക്കാനാവില്ലെന്ന് വ്യക്തമായും മാന്യമായും പറയുക; തുടർന്ന് കോഡുകളിൽ നിന്നുള്ള കൃത്യമായ, വസ്തുതാപരമായ കാരണങ്ങൾ നൽകുക. ' +
+        'ചെറുതും പ്രായോഗികവുമായ മെച്ചപ്പെടുത്തൽ പാതയും വീണ്ടും അപേക്ഷിക്കാനുള്ള യഥാർത്ഥ സമയപരിധിയും നൽകുക. കാരണങ്ങൾ അറിയാനും ബ്യൂറോ ഡാറ്റയിൽ തർക്കം ഉന്നയിക്കാനുമുള്ള ' +
+        'അപേക്ഷകന്റെ അവകാശം സൂചിപ്പിക്കുക. ശൈലി: മാന്യം — അവസാനം പ്രതീക്ഷയോടെ: വാതിൽ തുറന്നിരിക്കുന്നു.',
+    };
     return [
-      { role: 'user', content: `Draft a decline notice for reason_codes: ${args?.reason_codes}.` },
-      {
-        role: 'assistant',
-        content:
-          'Say clearly and kindly that we cannot approve right now, then give the specific, factual reasons (mapped from the codes). ' +
-          'Provide a short, achievable improvement path and a realistic reapply window. Include the applicant\'s right to the reasons ' +
-          'and to dispute bureau data. Tone: respectful, never "we regret to inform you". End with a genuine door left open.',
-      },
+      { role: 'user', content: `Draft a decline notice for reason_codes: ${args?.reason_codes} (${lang}).` },
+      { role: 'assistant', content: guides[lang] ?? guides.english },
     ];
   }
 
   @Prompt({
     name: 'kyc-consent-script',
-    description: 'Standardised consent + data-use explanation to read before record_consent.',
-    arguments: [{ name: 'language', description: 'Preferred language.', required: false }],
+    description:
+      'Standardised consent + data-use explanation to read before record_consent. Localised: language="hindi" or "malayalam" returns the vernacular script (India-first design).',
+    arguments: [{ name: 'language', description: 'Preferred language: english (default), hindi, malayalam.', required: false }],
   })
   async kycConsentScript(args: any, _ctx: ExecutionContext): Promise<Msg[]> {
-    const lang = args?.language ? ` in ${args.language}` : '';
+    const lang = String(args?.language ?? 'english').toLowerCase();
+    const scripts: Record<string, string> = {
+      english:
+        'Before I check anything, I need your permission. To assess this loan I\'ll access: your credit bureau report, ' +
+        '12 months of bank statements (via Account Aggregator), and your PAN/CKYC. I will NOT access your Aadhaar number, ' +
+        'social media, location, or contacts. This consent is scoped, expires in 15 minutes, and you can withdraw it anytime. ' +
+        'Do you agree? (Yes records versioned consent and unlocks the checks; No means I cannot pull this data.)',
+      hindi:
+        'कुछ भी जाँचने से पहले मुझे आपकी अनुमति चाहिए। इस लोन के आकलन के लिए मैं देखूँगा: आपकी क्रेडिट ब्यूरो रिपोर्ट, ' +
+        '12 महीने के बैंक स्टेटमेंट (अकाउंट एग्रीगेटर के ज़रिए), और आपका PAN/CKYC। मैं आपका आधार नंबर, सोशल मीडिया, ' +
+        'लोकेशन या कॉन्टैक्ट्स नहीं देखूँगा। यह सहमति सीमित दायरे की है, 15 मिनट में समाप्त हो जाती है, और आप इसे कभी भी वापस ले सकते हैं। ' +
+        'क्या आप सहमत हैं? (हाँ — सहमति दर्ज होगी और जाँच शुरू होगी; नहीं — मैं यह डेटा नहीं देख पाऊँगा।)',
+      malayalam:
+        'എന്തെങ്കിലും പരിശോധിക്കും മുൻപ് എനിക്ക് നിങ്ങളുടെ അനുമതി വേണം. ഈ വായ്പ വിലയിരുത്താൻ ഞാൻ നോക്കുന്നത്: നിങ്ങളുടെ ക്രെഡിറ്റ് ബ്യൂറോ റിപ്പോർട്ട്, ' +
+        '12 മാസത്തെ ബാങ്ക് സ്റ്റേറ്റ്മെന്റുകൾ (അക്കൗണ്ട് അഗ്രിഗേറ്റർ വഴി), നിങ്ങളുടെ PAN/CKYC എന്നിവയാണ്. നിങ്ങളുടെ ആധാർ നമ്പർ, സോഷ്യൽ മീഡിയ, ' +
+        'ലൊക്കേഷൻ, കോൺടാക്റ്റുകൾ എന്നിവ ഞാൻ നോക്കില്ല. ഈ സമ്മതം പരിമിത പരിധിയിലുള്ളതാണ്, 15 മിനിറ്റിൽ കാലഹരണപ്പെടും, എപ്പോൾ വേണമെങ്കിലും പിൻവലിക്കാം. ' +
+        'നിങ്ങൾ സമ്മതിക്കുന്നുണ്ടോ? (അതെ — സമ്മതം രേഖപ്പെടുത്തി പരിശോധനകൾ തുടങ്ങും; ഇല്ല — എനിക്ക് ഈ ഡാറ്റ എടുക്കാനാവില്ല.)',
+    };
+    const content = scripts[lang] ?? scripts.english;
     return [
-      { role: 'user', content: `Give me the consent script to read to the applicant${lang}.` },
-      {
-        role: 'assistant',
-        content:
-          'Before I check anything, I need your permission. To assess this loan I\'ll access: your credit bureau report, ' +
-          '12 months of bank statements (via Account Aggregator), and your PAN/CKYC. I will NOT access your Aadhaar number, ' +
-          'social media, location, or contacts. This consent is scoped, expires in 15 minutes, and you can withdraw it anytime. ' +
-          'Do you agree? (Yes records versioned consent and unlocks the checks; No means I cannot pull this data.)',
-      },
+      { role: 'user', content: `Give me the consent script to read to the applicant (${lang}).` },
+      { role: 'assistant', content },
     ];
   }
 }

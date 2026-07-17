@@ -3,7 +3,7 @@
  * Thin wrappers over engine. Underwriting is rules + scorecard + reason codes
  * (never trained ML — CLAUDE.md rule 8).
  */
-import { ToolDecorator as Tool, ControllerDecorator as Controller, ExecutionContext, z } from '@nitrostack/core';
+import { ToolDecorator as Tool, ControllerDecorator as Controller, Widget, ExecutionContext, z } from '@nitrostack/core';
 import { computeAffordabilityStep, underwriteStep, generateOffersStep } from '../lib/engine.js';
 
 const SESSION = z.string().describe('Session id from qualify_lead — reuse for every call.');
@@ -34,6 +34,7 @@ export class DecisionTools {
       lead_id: z.string(),
     }),
   })
+  @Widget('underwriting-result')
   async underwrite(input: any, ctx: ExecutionContext) {
     return underwriteStep(input);
   }
@@ -47,6 +48,7 @@ export class DecisionTools {
       lead_id: z.string(),
     }),
   })
+  @Widget('offer-comparison')
   async generate_offers(input: any, ctx: ExecutionContext) {
     return generateOffersStep(input);
   }

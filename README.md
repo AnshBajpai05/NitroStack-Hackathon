@@ -19,11 +19,20 @@ qualify_lead → record_consent (issues consent_token) → verify_kyc → screen
 `⚿` = consent-gated. Every arrow is an MCP tool call chosen by the client.
 
 ## MCP primitives (all 3 — R10 needs 2)
-- **14 Tools** — the 12 domain tools above + `revoke_consent` (DPDP withdrawal) + `health_check`.
+- **16 Tools** — the 12 domain tools above + `simulate_scenario` (What-If counterfactuals),
+  `get_reference_rates` (LIVE external data), `revoke_consent` (DPDP withdrawal), `health_check`.
 - **5 Resources** — `policy://credit-policy/v1.7`, `catalog://products/personal-loan`, `ref://city-tiers`,
   `consent://templates`, `case://{lead_id}` (live application record).
 - **5 Prompts** — `sales-playbook`, `underwriting-explainer`, `objection-handling`, `adverse-action-notice`,
-  `kyc-consent-script`.
+  `kyc-consent-script` — consent + adverse-action localised in **English, Hindi, Malayalam**.
+- **4 Widgets** — `underwriting-result` (FOIR/score gauge + reason checklist), `offer-comparison`
+  (tappable cards, accept → sanction), `sanction-letter` (document ceremony + SHA256), `scenario-compare`
+  (What-If baseline vs scenario with the 55% FOIR cap line).
+
+### The What-If Simulator (demo highlight)
+`simulate_scenario` re-runs affordability + underwriting with changed levers (income, tenure,
+close existing EMIs) **without touching the real case** — "close your ₹25k EMIs and CONDITIONAL
+becomes APPROVE at the full ₹3,00,000." Deterministic, explainable, rendered live in `scenario-compare`.
 
 ## Quickstart
 ```bash
