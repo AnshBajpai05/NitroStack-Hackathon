@@ -140,15 +140,19 @@ export function computeAffordabilityStep(input: { session_id: string; lead_id: s
   const rec = must(input.lead_id);
   if (!rec.bureau || !rec.bank) throw new Error('AFFORDABILITY_PRECONDITION: run pull_bureau and fetch_bank_statements first');
   const net_income = resolveNetIncome(rec.mobile ?? '9000000000');
+  // Overrides become the case's requested terms — underwrite/generate_offers must
+  // see the SAME tenure/amount this affordability was computed against.
+  const requested_amount = input.requested_amount ?? rec.amount ?? 0;
+  const tenure_months = input.tenure_months ?? rec.tenure_months ?? 36;
   const aff = computeAffordability({
-    requested_amount: input.requested_amount ?? rec.amount ?? 0,
-    tenure_months: input.tenure_months ?? rec.tenure_months ?? 36,
+    requested_amount,
+    tenure_months,
     bureau: rec.bureau,
     bank: rec.bank,
     net_income,
   });
-  store.patchCase(input.lead_id, { affordability: aff });
-  store.audit(input.session_id, 'compute_affordability', 'AFFORDABILITY_COMPUTED', { lead_id: input.lead_id, foir: aff.foir, dti: aff.dti, proposed_emi: aff.proposed_emi });
+  store.patchCase(input.lead_id, { affordability: aff, amount: requested_amount, tenure_months });
+  store.audit(input.session_id, 'compute_affordability', 'AFFORDABILITY_COMPUTED', { lead_id: input.lead_id, foir: aff.foir, dti: aff.dti, proposed_emi: aff.proposed_emi, tenure_months, requested_amount });
   return aff;
 }
 

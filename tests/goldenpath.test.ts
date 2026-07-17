@@ -91,6 +91,27 @@ describe('golden path — three deterministic stories', () => {
     expect(isRefusal(garbage)).toBe(true);
   });
 
+  it('tenure re-negotiation: affordability override at 48m flows into underwrite (agent-found bug)', () => {
+    // A live Claude run exposed this: agent re-ran compute_affordability with
+    // tenure_months=48, but underwrite still used the stale case tenure and
+    // capped at the shorter tenure's amount. Overrides must persist to the case.
+    const s = 'sess-renego';
+    const { lead_id, consent_token } = intake(s, 'VITTA1235K', '9876543222');
+    pullBureau({ session_id: s, lead_id, consent_token, pan: 'VITTA1235K' });
+    fetchBankStatements({ session_id: s, lead_id, consent_token });
+
+    // first pass at 24 months → tight FOIR cap
+    computeAffordabilityStep({ session_id: s, lead_id, tenure_months: 24 });
+    const d24 = underwriteStep({ session_id: s, lead_id });
+    expect(d24.max_amount).toBeLessThan(250000);
+
+    // re-negotiate at 48 months → full ₹3L must be serviceable
+    computeAffordabilityStep({ session_id: s, lead_id, tenure_months: 48 });
+    const d48 = underwriteStep({ session_id: s, lead_id });
+    expect(d48.max_amount).toBe(300000);
+    expect(d48.outcome).toBe('CONDITIONAL'); // score band still needs review
+  });
+
   it('audit trail redacts PII — raw demo PAN never stored in clear', () => {
     const s = 'sess-redact';
     const { lead_id, consent_token } = intake(s, 'VITTA1235K', '9876543222');
