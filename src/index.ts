@@ -14,6 +14,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { McpApplicationFactory } from '@nitrostack/core';
 import { AppModule } from './app.module.js';
+import { store } from './lib/store.js';
 
 /**
  * Bootstrap the application
@@ -34,13 +35,21 @@ async function bootstrap() {
         res.status(400).json({ error: 'BAD_LEAD_ID' });
         return;
       }
-      const file = join(process.cwd(), 'data', 'letters', `${leadId}.html`);
-      if (!existsSync(file)) {
-        res.status(404).json({ error: 'LETTER_NOT_FOUND', hint: 'Run create_sanction_letter first.' });
+      // 1) in-memory store (works on read-only cloud filesystems)
+      const html = store.getCase(leadId)?.sanction?.letter_fields?.html as string | undefined;
+      if (html) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(html);
         return;
       }
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(readFileSync(file, 'utf8'));
+      // 2) disk fallback (local dev)
+      const file = join(process.cwd(), 'data', 'letters', `${leadId}.html`);
+      if (existsSync(file)) {
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(readFileSync(file, 'utf8'));
+        return;
+      }
+      res.status(404).json({ error: 'LETTER_NOT_FOUND', hint: 'Run create_sanction_letter first.' });
     });
     console.error('[vitta] sanction-letter route mounted: GET /letters/:leadId');
   }
