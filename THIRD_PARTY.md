@@ -18,8 +18,12 @@
 ## Added by the team
 | Component | Version | License | Purpose | Commit |
 |---|---|---|---|---|
-| `vitest` | ^2 | MIT | unit + golden-path + consent tests | Phase 0 |
-| _(PDF lib for sanction letter — decide in Phase 3; record here in same commit)_ | | | | |
+| `vitest` | ^2.1.9 | MIT | unit + golden-path + consent tests (23 tests) | Phase 0 |
+| `tsx` | ^4.19 | MIT | run `scripts/regress.ts` + `seed-demo.ts` (TS without a build step) | Phase 0 |
+
+_No PDF library was added: the sanction letter is generated as self-contained HTML + a SHA256 integrity
+hash (see `src/lib/sanction.ts`), keeping the dependency surface minimal (CLAUDE.md rule 7). HTML→PDF is a
+documented Phase-7 upgrade._
 
 ## Data
 All bureau / bank / KYC / fraud data are **synthetic deterministic mocks** in `/mocks/*.json`,
