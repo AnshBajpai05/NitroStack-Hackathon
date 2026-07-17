@@ -21,3 +21,4 @@ Run the §6.5 checklist after EVERY deploy and record the result here.
 
 | D2 | (bugfix, auto) | 17 Jul 22:40 | same URL | ✓ | ✓ | fix: stale-tenure bug (found live by Claude MCP client). NOTE: this auto-deploy came up WITHOUT CONSENT_SECRET even though var was saved — env vars apply only on the NEXT explicit deploy after saving. |
 | D3 | (manual redeploy) | 17 Jul 22:55 | same URL | ✓ secret configured | ✓ | 10/10 verify-prod PASS. Rule: after EVERY deploy run `node scripts/verify-prod.mjs`; check `consent_secret_configured:true`. |
+| D4 | (manual redeploy) | 17 Jul 23:10 | same URL | ✓ secret configured | ✓ | 10/10 PASS. CONFIRMED QUIRK: GitHub auto-deploys DROP env vars; only manual "Deploy from GitHub" applies them. Mitigation: daily work on `dev` branch (no auto-deploy); deploys = merge to main → push → immediately manual Deploy from GitHub → verify-prod 10/10. |
