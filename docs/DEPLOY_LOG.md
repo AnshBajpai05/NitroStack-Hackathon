@@ -18,3 +18,6 @@ Run the §6.5 checklist after EVERY deploy and record the result here.
 
 ## Rollback (guaranteed, source-level)
 `git checkout <tag> && npm run build` → redeploy that tag via the dashboard (≈2 min).
+
+| D2 | (bugfix, auto) | 17 Jul 22:40 | same URL | ✓ | ✓ | fix: stale-tenure bug (found live by Claude MCP client). NOTE: this auto-deploy came up WITHOUT CONSENT_SECRET even though var was saved — env vars apply only on the NEXT explicit deploy after saving. |
+| D3 | (manual redeploy) | 17 Jul 22:55 | same URL | ✓ secret configured | ✓ | 10/10 verify-prod PASS. Rule: after EVERY deploy run `node scripts/verify-prod.mjs`; check `consent_secret_configured:true`. |
