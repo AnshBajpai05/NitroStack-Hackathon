@@ -35,7 +35,7 @@ export class IntakeTools {
   @Tool({
     name: 'record_consent',
     description:
-      'Capture explicit, versioned, timestamped DPDP consent and ISSUE the consent_token that unlocks data-pull tools. Call this BEFORE pull_bureau or fetch_bank_statements. If accepted=false, no token is issued and those tools will refuse.',
+      'Capture explicit, versioned, timestamped DPDP consent and ISSUE the consent_token that unlocks data-pull tools. Call this BEFORE pull_bureau or fetch_bank_statements. IMPORTANT: only call with accepted=true AFTER the human has explicitly agreed in this conversation — never assume or pre-fill consent on their behalf. If accepted=false, no token is issued and those tools will refuse.',
     inputSchema: z.object({
       session_id: SESSION,
       lead_id: z.string().describe('lead_id from qualify_lead.'),

@@ -102,5 +102,15 @@ check('audit redaction on prod', (t.count ?? 0) >= 10 && !blob.includes('VITTA12
 const rates = await call('get_reference_rates', {});
 check('live reference rates', !!rates?.inr_per?.USD, `source=${rates.source} USD→INR=${rates?.inr_per?.USD}`);
 
+// sanction letter downloadable over HTTP (GET /letters/:leadId)
+try {
+  const letterRes = await fetch(sl.url);
+  const letterHtml = letterRes.ok ? await letterRes.text() : '';
+  check('letter URL serves the signed letter', letterRes.ok && letterHtml.includes(String(sl.hash)),
+    `${sl.url} → HTTP ${letterRes.status}, hash-in-doc=${letterHtml.includes(String(sl.hash))}`);
+} catch (e) {
+  check('letter URL serves the signed letter', false, `${sl.url} → ${e.message}`);
+}
+
 console.log(`\n${failures === 0 ? 'ALL PROD CHECKS PASS' : failures + ' CHECKS FAILED'} — ${BASE}`);
 process.exit(failures === 0 ? 0 : 1);

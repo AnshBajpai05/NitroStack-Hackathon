@@ -34,6 +34,7 @@ export default function OfferComparison() {
   const data = getToolOutput<OffersOut>();
   const [selected, setSelected] = useState<string | null>(null);
   const [accepting, setAccepting] = useState(false);
+  const [fallbackHint, setFallbackHint] = useState<string | null>(null);
   const isDark = theme === 'dark';
 
   const fg = isDark ? '#f5f5f5' : '#111827';
@@ -52,7 +53,13 @@ export default function OfferComparison() {
     setAccepting(true);
     try {
       // let the agent narrate + run create_sanction_letter with full context
-      sendFollowUpMessage(`I accept offer ${offer.offer_id} (${inr(offer.amount)} for ${offer.tenure_months} months at EMI ${inr(offer.emi)}). Please generate my sanction letter.`);
+      await Promise.resolve(
+        sendFollowUpMessage(`I accept offer ${offer.offer_id} (${inr(offer.amount)} for ${offer.tenure_months} months at EMI ${inr(offer.emi)}). Please generate my sanction letter.`),
+      );
+    } catch {
+      // host doesn't support follow-up messages (e.g. sandboxed preview) —
+      // degrade to an explicit typed instruction instead of a dead button
+      setFallbackHint(`This host blocks widget actions — type "I accept ${offer.offer_id}" in the chat to proceed.`);
     } finally {
       setAccepting(false);
     }
@@ -96,6 +103,9 @@ export default function OfferComparison() {
           );
         })}
       </div>
+      {fallbackHint && (
+        <div style={{ marginTop: 10, padding: '8px 12px', borderRadius: 8, background: 'rgba(245,158,11,0.14)', color: '#f59e0b', fontSize: 12 }}>{fallbackHint}</div>
+      )}
       <div style={{ fontSize: 10, color: muted, marginTop: 10 }}>3-day cooling-off applies after sanction. No hidden charges — the total cost above is everything.</div>
     </div>
   );

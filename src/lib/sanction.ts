@@ -41,16 +41,21 @@ export function createSanction(caseRec: CaseRecord, offer: Offer): SanctionResul
   const hash = createHash('sha256').update(canonical(letter_fields)).digest('hex');
   const htmlWithFooter = html.replace('{{HASH}}', hash);
 
-  // persist for download / widget rendering (data/ is gitignored)
-  let url = `case://${caseRec.lead_id}/sanction`;
+  // persist for download / widget rendering (data/ is gitignored).
+  // The server mounts GET /letters/:leadId (src/index.ts) so this URL is a
+  // real, clickable download link on the deployed host.
+  const base =
+    process.env.PUBLIC_BASE_URL ??
+    (process.env.NODE_ENV === 'production'
+      ? 'https://vitta-6a5a5835-the-beetles-amrita-university-amritapuri-campus.app.nitrocloud.ai'
+      : `http://localhost:${process.env.PORT ?? 3000}`);
+  let url = `${base}/letters/${caseRec.lead_id}`;
   try {
     const dir = join(process.cwd(), 'data', 'letters');
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const file = join(dir, `${caseRec.lead_id}.html`);
-    writeFileSync(file, htmlWithFooter, 'utf8');
-    url = `data/letters/${caseRec.lead_id}.html`;
+    writeFileSync(join(dir, `${caseRec.lead_id}.html`), htmlWithFooter, 'utf8');
   } catch {
-    /* keep resource-uri fallback */
+    url = `case://${caseRec.lead_id}/sanction`; // resource-uri fallback if disk write fails
   }
 
   return { url, hash, valid_till: offer.valid_till, letter_fields: { ...letter_fields, html: htmlWithFooter } };

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTheme, useWidgetSDK } from '@nitrostack/widgets';
 
 /**
@@ -41,18 +42,35 @@ export default function SanctionLetter() {
   if (!d) return <div style={{ padding: 24, textAlign: 'center' }}>Preparing letter…</div>;
   const f = d.letter_fields || {};
 
+  const [linkHint, setLinkHint] = useState<string | null>(null);
+
   const download = () => {
-    if (f.html) {
-      const blob = new Blob([f.html], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'vitta-sanction-letter.html';
-      a.click();
-      URL.revokeObjectURL(url);
-    } else if (d.url?.startsWith('http')) {
-      openExternal(d.url);
+    // 1) real hosted URL (server mounts GET /letters/:leadId) — works everywhere
+    if (d.url?.startsWith('http')) {
+      try {
+        openExternal(d.url);
+        return;
+      } catch {
+        /* host blocks openExternal — try blob next */
+      }
     }
+    // 2) blob download from the embedded html
+    if (f.html) {
+      try {
+        const blob = new Blob([f.html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'vitta-sanction-letter.html';
+        a.click();
+        URL.revokeObjectURL(url);
+        return;
+      } catch {
+        /* sandbox blocks downloads too */
+      }
+    }
+    // 3) last resort: surface the link as selectable text
+    setLinkHint(d.url ?? 'Ask the agent for your sanction letter link.');
   };
 
   return (
@@ -85,6 +103,11 @@ export default function SanctionLetter() {
             ⬇ Download signed letter
           </button>
 
+          {linkHint && (
+            <div style={{ marginTop: 8, padding: '6px 10px', borderRadius: 8, background: 'rgba(184,134,11,0.14)', fontSize: 11, fontFamily: 'system-ui, sans-serif', wordBreak: 'break-all' }}>
+              Letter link: {linkHint}
+            </div>
+          )}
           <div style={{ marginTop: 10, fontSize: 9, fontFamily: 'monospace', color: muted, wordBreak: 'break-all' }}>
             SHA256 {d.hash}
           </div>
