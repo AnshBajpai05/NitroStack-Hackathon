@@ -1,360 +1,190 @@
-<div align="center">
+# Vitta — agentic lending with consent built into the code
 
-# 🏦 Vitta
+> Most "AI lending" demos are chatbots that quote EMIs. Vitta actually runs the loan — and physically refuses to touch your data without consent.
 
-> **Compliant-by-design lending, expressed as a Model Context Protocol server.**
+![Model Context Protocol](https://img.shields.io/badge/Model%20Context%20Protocol-MCP-blue) ![Built with Nitrostack](https://img.shields.io/badge/Built%20with-Nitrostack-0A66FF) ![Status](https://img.shields.io/badge/status-live-brightgreen) ![Track](https://img.shields.io/badge/track-BFSI%20%26%20FinTech-F5A623)
 
-A **consent-native MCP server** for NBFC personal-loan origination, enabling **any AI client to take a
-borrower from _“hi”_ to a signed sanction letter** — through consent enforced *in code*, explainable
-underwriting, and a what-if simulator that turns a *“no”* into a path to *“yes.”*
+**Vitta** is an [MCP (Model Context Protocol)](https://nitrostack.ai) server that gives AI assistants — Claude, Cursor, ChatGPT, NitroChat, or any MCP-compatible client — real authority to run an NBFC personal-loan from *"hi"* to a **signed sanction letter**: qualify, consent, KYC, fraud, credit bureau, bank analysis, explainable underwriting, priced offers, and a tamper-evident audit trail — unified into one decision layer. Built and deployed on [Nitrostack](https://nitrostack.ai) by **Team The Beetles**, Amrita University.
 
-Unlike a chatbot bolted onto a lending backend, this system:
-- **Enforces DPDP consent at the tool layer** — data-pull tools *physically refuse* to run without a valid, scoped, lead-bound token.
-- **Explains every decision** with rules + reason codes — no black-box model, nothing to fabricate under questioning.
-- **Is one server, many clients** — the same tools power NitroChat, Claude, or a ChatGPT App with **no rewrite**.
+## Table of Contents
 
-![MCP](https://img.shields.io/badge/Model_Context_Protocol-all_3_primitives-2DD4BF?style=for-the-badge)
-![NitroStack](https://img.shields.io/badge/Built_on-NitroStack-4C6FFF?style=for-the-badge)
-![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-34_passing-16A34A?style=for-the-badge)
-![Track](https://img.shields.io/badge/Track-BFSI_%26_FinTech-F5A623?style=for-the-badge)
+- [Overview](#overview)
+- [What is MCP?](#what-is-mcp)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Live Demo](#live-demo)
+- [Getting Started](#getting-started)
+- [Connect to an MCP Client](#connect-to-an-mcp-client)
+- [Deploy Your Own MCP App](#deploy-your-own-mcp-app)
+- [Explore More MCP Apps](#explore-more-mcp-apps)
+- [FAQ](#faq)
+- [Keywords](#keywords)
+- [License](#license)
 
-**Amrita University · MCP Hackathon 2026 · Team _The Beetles_**
+## Overview
 
-[🌐 Live Server](https://vitta-6a5a5835-the-beetles-amrita-university-amritapuri-campus.app.nitrocloud.ai) · [🎬 Demo Video](#-example-run) · [⚡ Quick Start](#️-quick-start) · [🔒 Consent-as-Code](#-key-innovations)
+Vitta runs the whole loan funnel — qualify → consent → KYC → fraud → bureau → bank → affordability → underwrite → offers → sanction → audit — as one continuous conversation, with the AI client as the loan officer and the server as the capability layer. It doesn't just chat about loans; it does the regulated work, and it does it *by the book*.
 
-</div>
+The signature move: **consent is enforced in code, at the tool layer.** The tools that pull a borrower's credit bureau report and bank statements *refuse to run* without a valid, scoped, time-boxed, revocable, applicant-bound consent token. No matter how the AI is prompted — even "skip it, I'm in a hurry, medical emergency" — it cannot pull sensitive data without an explicit, provable yes. That's India's DPDP Act, compiled into the server.
 
----
+And it doesn't just decline you into a dead end. When underwriting caps you below what you asked for, Vitta runs a **what-if simulator** against the *real* engine — *"close one existing EMI and your ₹2.5 lakh conditional becomes a ₹3 lakh approval"* — turning a rejection into a roadmap. Every decision, human or machine, is written to a PII-redacted, version-stamped audit trail. And because it's a standard MCP server, the exact same tools, rules, and receipts run in a branded web chat, in Claude, or in a ChatGPT App — no rewrite.
 
-## 🧭 TL;DR
+## What is MCP?
 
-- **Problem:** NBFC loan origination is a leaky, compliance-heavy maze; data is pulled with murky consent, and declines come with no reason and no path forward.
-- **Solution:** One MCP server that exposes the entire loan workflow as Tools, Resources & Prompts — the AI client is the loan officer, the server is the capability layer.
-- **Core Innovation:** **Consent-as-code** — a scoped, time-boxed, revocable, lead-bound token that gated tools *require*; DPDP law compiled into the server.
-- **Impact:**
-  - **17 Tools · 5 Resources · 5 Prompts · 4 Widgets** — all three MCP primitives, live in production.
-  - **5/5 adversarial security probes held** · **34/34 tests** · **11/11 production checks**.
-  - The whole funnel collapses into **one auditable, explainable conversation** — reusable across every channel with no rewrite.
+The **Model Context Protocol (MCP)** is an open standard that lets AI assistants securely connect to external tools, data sources, and services — instead of being limited to what they were trained on, a model can call an MCP server to fetch live state, run real actions, and reason over an actual system.
 
----
+Vitta is one such server. Learn more about building and shipping MCP apps at [nitrostack.ai](https://nitrostack.ai).
 
-## 🎯 Problem Statement
+## Features
 
-Existing NBFC origination suffers from:
-- **Leakage** — every hop (qualify → consent → KYC → bureau → offer) loses applicants to forms and portals.
-- **Opacity** — declines rarely come with a clear, lawful reason or a way to improve.
-- **Consent theatre** — sensitive bureau/bank data is pulled behind vague checkboxes, not provable consent.
+- 🔒 **Consent enforced in code** — `pull_bureau` and `fetch_bank_statements` refuse to run without a valid HMAC consent token that is **scoped, time-boxed (15 min), revocable, and bound to the applicant**. Not a prompt instruction — a hard gate in the handler.
+- 🧠 **Explainable underwriting, no black box** — a transparent rules engine + a pre-baked scorecard emit `reason_codes[]` mapped to borrower-friendly text (localised in **English, Hindi & Malayalam**). We never claim a model we didn't train.
+- 🔮 **What-if simulator** — `simulate_scenario` re-runs the *real* affordability + underwriting with one changed lever (close an EMI, stretch tenure) **without mutating the application**, and shows the exact delta that unlocks the full amount.
+- 🧾 **Signed sanction letter** — `create_sanction_letter` produces a real HTML letter with amortization, a 3-day cooling-off clause, and a **SHA-256 integrity hash**, downloadable at a live URL.
+- 📓 **PII-redacted audit trail** — every tool call and decision is appended immutably with policy/scorecard/prompt versions; retrievable in `FULL`, `SUMMARY`, or `COMPLIANCE_VIEW`. PAN/mobile are masked at write-time.
+- 🛡️ **Hardened against attack** — reusing one applicant's consent token on another is blocked (`CONSENT_LEAD_MISMATCH`); forged tokens fail HMAC; scope-escalation is rejected. **5/5 adversarial probes held.**
+- 🙋 **Human-in-the-loop by design** — `CONDITIONAL` decisions and `REVIEW` fraud verdicts pause the agent for a human with a clear briefing, not a wall of logs.
+- 🔌 **MCP-native** — **17 tools, 5 resources, 5 prompts, 4 rich UI widgets**, callable from any MCP-compatible client.
 
-This leads to:
-- **Regulatory risk** (DPDP / RBI / KYC obligations that must be *provable*, not assumed).
-- **Borrower distrust and drop-off** — people abandon a process they don’t understand and can’t question.
+## Architecture
 
----
-
-## 🎯 Design Goals
-
-- **Compliance-first** — consent, audit, and disclosures enforced by the system, not by good intentions.
-- **Deterministic** — identical, repeatable outcomes for a reliable demo and reproducible decisions.
-- **Explainable** — every decision carries reason codes and plain-English text; no black box.
-- **Composable** — one MCP server reusable by any client, any channel.
-- **Robust** — test-first on the load-bearing logic; survives adversarial prompting and token attacks.
-
----
-
-## 💡 Key Innovations
-
-1. **Consent-as-Code (the signature idea)**
-   → `pull_bureau` and `fetch_bank_statements` call `validConsent()` as their **first line** and refuse
-   without a valid HMAC token that is **scoped**, **time-boxed (15 min)**, **revocable**, and **bound to the
-   applicant**. No prompt can talk the AI past it — the gate lives in the server. *DPDP, expressed as software.*
-
-2. **The What-If Simulator**
-   → `simulate_scenario` re-runs the **real** affordability + underwriting with one changed lever
-   (“close a ₹4,000 EMI”, “48-month tenure”) **without mutating the application**, and shows the exact delta:
-   *CONDITIONAL ₹2.5L → APPROVE ₹3L.* It turns a rejection into a roadmap.
-
-3. **One Server, Many Clients**
-   → Because the logic is a standard MCP server, the same tool suite powers a branded chat, Claude, a ChatGPT
-   App, or (roadmap) WhatsApp and an underwriter console — standard contracts, versioned policy, one audit trail.
-
-4. **Explainability without ML overclaim**
-   → Rules + a pre-baked scorecard + reason codes → borrower-friendly text (localised EN/HI/ML). We never
-   claim a trained model we didn’t train — honest and defensible under a judge’s questioning.
-
----
-
-## 🧠 Why This Works
-
-Traditional approaches fail because:
-- **A monolithic multi-agent app** hides orchestration inside itself, can’t be reused, and dilutes the MCP story.
-- **Prompt-level “please get consent”** is not enforcement — any jailbreak or clever phrasing bypasses it.
-- **A black-box ML score** collapses the moment a judge (or a regulator) asks *“how does it decide?”*
-
-This system succeeds because it models compliance as three concrete things:
-- **Consent** as a cryptographic, scoped capability token checked at the tool boundary.
-- **Explainability** as deterministic reason codes mapped to human language.
-- **Auditability** as an append-only, PII-redacted, version-stamped event log.
-
-→ **Result:** compliance becomes the *feature*, not the overhead — and it’s provable, not asserted.
-
----
-
-## 🏗️ System Architecture
+The client is the agent; Vitta is the capability layer. The same server powers any channel with no rewrite.
 
 ```mermaid
 flowchart TB
   subgraph Clients["MCP CLIENTS — the agent"]
     direction LR
-    NC[NitroChat]
-    CL[Claude]
-    GPT[ChatGPT App]
+    NC[NitroChat] --- CL[Claude] --- GPT[ChatGPT App]
   end
   Clients -->|MCP protocol| Server
-  subgraph Server["VITTA MCP SERVER — built on NitroStack"]
+  subgraph Server["VITTA MCP SERVER — on Nitrostack"]
     direction LR
-    T[17 Tools]
-    R[5 Resources]
-    P[5 Prompts]
-    CG[["🔒 Consent Gate<br/>DPDP enforced in code"]]
-    AU[Redacted Audit Trail]
+    T[17 Tools] --- R[5 Resources] --- P[5 Prompts] --- CG[["🔒 Consent Gate"]] --- AU[Redacted Audit]
   end
   Server -->|mock now · real later| Adapters
   subgraph Adapters["BACKEND ADAPTERS"]
     direction LR
-    BU[Credit Bureau]
-    AA[Account Aggregator]
-    KY[KYC / PAN]
-    DE[Rules + Scorecard]
-    DO[Document / e-sign]
+    BU[Credit Bureau] --- AA[Account Aggregator] --- KY[KYC/PAN] --- DE[Rules + Scorecard] --- DO[Doc / e-sign]
   end
   classDef sig fill:#3a2a00,stroke:#f5a623,stroke-width:2px,color:#fff;
   class CG sig;
 ```
 
-**The Golden Path** — every arrow is an MCP tool call chosen by the client:
+## Live Demo
 
-```mermaid
-flowchart LR
-  A([qualify_lead]) --> B([record_consent<br/>issues token])
-  B --> C([verify_kyc]) --> D([screen_fraud]) --> E([pull_bureau]) --> F([fetch_bank_statements])
-  F --> G([compute_affordability]) --> H([underwrite]) --> I([generate_offers]) --> J([create_sanction_letter]) --> K([audit_trail])
-  classDef gate fill:#3a2a00,stroke:#f5a623,stroke-width:2px,color:#fff;
-  classDef issuer fill:#04322e,stroke:#2dd4bf,stroke-width:2px,color:#fff;
-  class E,F gate;
-  class B issuer;
-```
+🚀 **Live MCP endpoint:** https://vitta-6a5a5835-the-beetles-amrita-university-amritapuri-campus.app.nitrocloud.ai
 
----
+Point your MCP client at the endpoint above to try it instantly. Ask it to run a loan for *"₹3 lakh, 36 months, medical emergency, salaried, Kochi, PAN `VITTA1235K`, mobile `9876543222`"* — watch it stop for consent, return an explainable conditional decision, and then show you exactly what unlocks the full amount.
 
-## 🧩 System Components
+Every outcome is deterministic (keyed by PAN digit / mobile suffix), so the demo runs identically every time:
 
-### 1. Pure Decisioning Engine (`src/lib/`)
-- **What it does:** all business logic — consent tokens, scorecard, EMI/APR math, affordability, offers,
-  sanction letter, PII redaction, the what-if simulator — as pure, deterministic, dependency-free modules.
-- **How it works:** zero platform imports and an injectable clock, so it’s fully unit-testable. The MCP tools
-  are **thin wrappers** over these functions, so **tested behavior == tool behavior by construction.**
-
-### 2. MCP Surface (`src/tools/`, `src/resources/`, `src/prompts/`)
-- **What it does:** exposes the engine as 17 Tools, 5 Resources, and 5 Prompts via NitroStack decorators.
-- **How it works:** `@Tool`/`@Resource`/`@Prompt` classes registered in a module; `advance_application`
-  collapses the six post-consent steps into one call for reliability on any client.
-
-### 3. Rich Widgets (`src/widgets/`)
-- **What it does:** 4 React cards — decision gauge, offer comparison, signed sanction letter, what-if compare.
-- **How it works:** `@Widget` binds a component to a tool’s output; renders inline in NitroChat / ChatGPT.
-
-### 4. Deterministic Mock Adapters (`mocks/`, `src/lib/seeds.ts`)
-- **What it does:** synthetic bureau/bank/KYC/fraud data keyed by PAN digit and mobile suffix.
-- **How it works:** the boundary is a swap-in point for real CIBIL/AA/CKYC later — same contract, real data.
-
----
-
-## 🧠 Decisioning Engine — *rules-first, no ML (by design)*
-
-> There are no labelled default outcomes to train on in a hackathon, and a fabricated model is transparent to
-> a technical judge. So decisioning is a **transparent rules engine + a pre-baked, explainable scorecard** —
-> the honest, defensible choice. A trained model is a documented *post-hackathon hook*, not a demo claim.
-
-- **Inputs:** bureau (score, DPD, write-offs, inquiries, active EMIs), bank cashflow (surplus, stability), FOIR.
-- **Output:** `APPROVE` / `CONDITIONAL` / `DECLINE` + `reason_codes[]` + borrower-friendly `explanations[]`.
-- **Policy (editable, mirrored in a Resource):** `FOIR = (existing_emi + proposed_emi) / net_income`;
-  hard negatives → DECLINE (score < 680, DPD > 30, write-off, inquiries > 6); score bands **APPROVE ≥ 60 ·
-  CONDITIONAL 40–59 · DECLINE < 40**; `max_amount = min(segment cap, FOIR-permitted amount)`.
-- **EMI:** reducing-balance, pinned by unit test (₹3,00,000 @ 15.99% / 36m = **₹10,546**).
-
----
-
-## 📊 Verification & Reliability
-
-*(No accuracy/F1 — there is no trained model by design. These are the metrics that actually matter here.)*
-
-### Test surface
-- **Type:** unit + golden-path + consent + security + edge-path regression (Vitest + a custom harness).
-
-### Results
-
-| Check | Result |
-|---|---|
-| Unit / golden-path / consent tests | **34 / 34 passing** |
-| Edge-path regression (APPROVE · CONDITIONAL · DECLINE · consent-refusal · fraud-REVIEW · objection) | **6 / 6 PASS** |
-| Production verification (`verify-prod.mjs`) | **11 / 11 PASS** |
-| Adversarial security probes | **5 / 5 held** |
-| Consent-gate median latency (in-memory, deterministic) | **sub-millisecond** engine · ~20–40 ms over HTTP |
-
-### Baseline comparison
-
-| Approach | Consent enforcement | Explainability | Reusable across clients |
+| Try this | PAN | Mobile | Result |
 |---|---|---|---|
-| Typical loan chatbot | prompt-level (bypassable) | black-box score | rebuilt per channel |
-| **Vitta** | **tool-layer, cryptographic** | **reason codes + plain text** | **one MCP server, any client** |
+| **Conditional (headline)** | `VITTA1235K` | `9876543222` | ₹2,50,000, FOIR 57% — unlockable to ₹3L via what-if |
+| Full approval | `AAAPA1230A` | `9000000010` | ₹3,00,000 approved |
+| Respectful decline | `ZZZPZ1239Z` | any | declined with adverse-action reasons |
 
----
+## Getting Started
 
-## 🔍 Example Run
+### Prerequisites
 
-**Input** (a borrower message the AI client turns into tool calls):
-```text
-Hi, I need ₹3 lakh for 36 months for a medical emergency. I'm salaried in Kochi,
-PAN VITTA1235K, mobile 9876543222, name Priya Sharma.
-```
+- Node.js **20.18+**
+- An MCP-compatible client (Claude Desktop, Cursor, NitroStudio, etc.)
+- **No paid API key required** — the one external call (live reference rates) uses a free, keyless endpoint with an offline fallback.
 
-**Decision output** (`advance_application` → renders the gauge widget):
-```json
-{
-  "outcome": "CONDITIONAL",
-  "max_amount": 250000,
-  "score": 46,
-  "foir": 0.573,
-  "bureau_score": 705,
-  "kyc_status": "PASS",
-  "fraud_verdict": "CLEAR",
-  "reason_codes": ["FOIR_LIMIT", "HIGH_EXISTING_EMI", "MANUAL_REVIEW", "ELEVATED_INQUIRIES"],
-  "explanations": [
-    "Approved for ₹2,50,000 instead of ₹3,00,000 because existing EMIs put your FOIR at 57%.",
-    "Your application needs a brief review by our team before final approval."
-  ]
-}
-```
+### Installation
 
-**Consent gate output** (any gated tool without a valid token):
-```json
-{ "error": "CONSENT_REQUIRED", "code": "CONSENT_LEAD_MISMATCH",
-  "hint": "This consent_token was issued for a different application — obtain consent for this lead_id" }
-```
-
----
-
-## 🧪 Experimental Insights
-
-- **The MCP client is an adversarial tester.** An LLM driving the *live* server found **two real bugs** — a
-  stale-tenure leak between `compute_affordability` and `underwrite`, and offers that breached the FOIR cap
-  that set their own amount. Both fixed with regression tests within the hour.
-- **A genuine platform finding:** NitroStack’s `ExecutionContext` doesn’t expose tool input to Guards, so the
-  consent token (a tool argument) can’t be checked in a Guard — we enforce it **inline** in the handler instead.
-  Documented honestly in [`docs/NITROSTACK_NOTES.md`](docs/NITROSTACK_NOTES.md).
-
-**Conclusion:** → putting the pure logic behind thin tools made the system *testable, attackable, and honest* —
-which is exactly what a BFSI evaluator wants to see.
-
----
-
-## ⚠️ Limitations & Failure Cases
-
-### Limitations (deliberate, hackathon-scoped)
-- **Mocks-only backend** — real CIBIL/AA/CKYC/e-sign are drop-in adapters, not wired.
-- **JSON-file store** — single-instance, in-memory-first; not built for concurrency (no DB, by rule).
-- **No server-side auth/rate-limit** on the MCP endpoint — fine for a demo, a roadmap item for production.
-
-### Designed “failure” (a feature, not a bug)
-**Input:** `pull_bureau` with a consent token issued for a *different* applicant.
-**Result:** `CONSENT_LEAD_MISMATCH` — the server refuses, preventing a cross-applicant data leak.
-
----
-
-## 🚀 Deployment Scenarios
-
-- **Branded NitroChat widget** on an NBFC website (live).
-- **Claude / ChatGPT App** connected to the same server (R19 — demonstrated).
-- **WhatsApp / IVR** origination for the 90% who never open an app *(roadmap)*.
-- **Internal underwriter console** — the human is the client for CONDITIONAL cases *(roadmap)*.
-
----
-
-## 🔁 Reproducibility
-
-- **Deterministic data** — every outcome is keyed by PAN digit / mobile suffix; identical every run.
-- **Verifiable** — `npm test` (34), `npm run regress` (A–F), `node scripts/verify-prod.mjs` (11-check live).
-- **Traceable** — every deploy is logged in [`docs/DEPLOY_LOG.md`](docs/DEPLOY_LOG.md) and git-tagged for instant rollback.
-
----
-
-## 📁 Repository Structure
-
-```text
-vitta-lending/
-├── src/
-│   ├── lib/        # pure engine: consent, scorecard, emi, affordability, offers,
-│   │               #   sanction, seeds, redact, store, engine, simulate, rates
-│   ├── tools/      # 17 thin @Tool wrappers over the engine
-│   ├── resources/  # 5 MCP resources
-│   ├── prompts/    # 5 MCP prompts (EN / HI / ML)
-│   └── widgets/    # 4 React widgets (Next.js)
-├── mocks/          # deterministic seeds (bureau / bank / kyc / fraud / city)
-├── tests/          # consent (test-first), emi, seeds, goldenpath, simulate
-├── scripts/        # regress (A–F), verify-prod, seed-demo, e2e-wire
-└── docs/           # NITROSTACK_NOTES · SPEC · SUBMISSION · VIDEO_SCRIPT · DIAGRAMS · DEPLOY_LOG
-```
-
----
-
-## ⚙️ Quick Start
-
-### Setup
 ```bash
-git clone https://github.com/AnshBajpai05/NitroStack-Hackathon
-cd vitta-lending
-npm install            # root + widget deps
+git clone https://github.com/AnshBajpai05/NitroStack-Hackathon.git
+cd NitroStack-Hackathon
+npm install
+```
+
+### Configuration
+
+Copy the example environment file (optional for local dev):
+
+```bash
+cp .env.example .env
+```
+
+```env
+# Recommended for production so consent tokens survive restarts.
+# If unset, the server generates a strong per-boot secret automatically.
+CONSENT_SECRET=your_long_random_secret_here
 ```
 
 ### Run
+
 ```bash
-npm run build          # → dist/ + src/widgets/out/
-npm run dev            # stdio dev server — open the folder in NitroStudio to test visually
+npx nitrostack-cli dev
 ```
 
 ### Verify (free — no platform credits)
+
 ```bash
-npm test                          # 34 tests
-npm run regress                   # 6/6 edge paths
-node scripts/verify-prod.mjs      # 11/11 checks against the live server
+npm test                          # 34 unit + golden-path + consent + security tests
+npm run regress                   # 6 edge paths (approve / conditional / decline / consent-refusal / fraud / objection)
+node scripts/verify-prod.mjs      # 11-check verification against the live server
 ```
 
+## Connect to an MCP Client
+
+Add this server to your MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "vitta-lending": {
+      "url": "https://vitta-6a5a5835-the-beetles-amrita-university-amritapuri-campus.app.nitrocloud.ai/mcp"
+    }
+  }
+}
+```
+
+Restart your client — **17 lending tools** become available to your AI assistant immediately.
+
+## Deploy Your Own MCP App
+
+Want to build and ship an MCP server like this one? **[Nitrostack](https://nitrostack.ai)** lets you create, deploy, and host MCP apps in minutes — no infrastructure to manage. Vitta was scaffolded with the Nitrostack CLI, tested in NitroStudio, deployed to NitroCloud, and wired to a branded NitroChat surface — all on the platform.
+
+👉 **Start building:** [https://nitrostack.ai](https://nitrostack.ai)
+
+## Explore More MCP Apps
+
+- 🌙 Discover and share MCP projects with the community on [r/mcptothemoon](https://www.reddit.com/r/mcptothemoon/)
+- 🧰 Browse a growing catalog of MCP apps on [Nitrostack](https://nitrostack.ai/apps)
+
+## FAQ
+
+### What is an MCP server?
+
+An MCP server implements the Model Context Protocol to expose tools, resources, and prompts that AI assistants can call — letting a model take real actions and access live data instead of just generating text.
+
+### What does Vitta actually do?
+
+It originates NBFC personal loans autonomously — qualifying, consenting, KYC, fraud screening, credit and cashflow assessment, explainable underwriting, pricing, and a signed sanction letter — while enforcing DPDP consent at the tool layer and refusing to pull sensitive data without a valid, applicant-bound consent token.
+
+### Is my data safe / does it use real credit data?
+
+All bureau, bank, KYC and fraud data are synthetic deterministic mocks. There is **no real personal data and no real financial API**, ever — the mock adapters are drop-in points for real CIBIL/Account-Aggregator/CKYC integrations later.
+
+### Which AI clients does this work with?
+
+Any MCP-compatible client, including Claude Desktop, Cursor, and NitroStudio, plus the hosted NitroChat surface. New clients are adding MCP support regularly.
+
+### How do I deploy my own MCP app?
+
+Use [Nitrostack](https://nitrostack.ai) to build, deploy, and host MCP apps without managing infrastructure.
+
+## Keywords
+
+`BFSI` · `FinTech` · `MCP` · `Model Context Protocol` · `MCP server` · `loan origination` · `NBFC lending` · `DPDP consent` · `explainable AI` · `credit underwriting` · `AI agents` · `agentic AI` · `Claude MCP` · `Nitrostack` · `deploy MCP server`
+
+## License
+
+MIT © 2026 Team The Beetles
+
 ---
 
-## 🌍 Impact
-
-- **For borrowers:** clarity and dignity — you’re told *why*, and *what would change it*, in your language.
-- **For NBFCs:** the whole funnel becomes one auditable, explainable session — and the same server extends to
-  every channel with no rewrite, on standard, versioned, provable contracts.
-
----
-
-## 🔮 Vision
-
-To make **regulated lending consent-native by default** — where every data pull is provable, every decision is
-explainable, and the compliance layer is a portable MCP standard that any NBFC, on any channel, can adopt
-without rebuilding a thing.
-
----
-
-<div align="center">
-
-**One server. Any client. Compliant by design.**
-
-Team **The Beetles** · Amrita University, Amritapuri · BFSI & FinTech
-_<Names + roll numbers>_
-
-<sub>All data are synthetic deterministic mocks — no real personal data, no real financial APIs, ever. The sanction letter is a demo document, not a financial instrument.</sub>
-
-</div>
+Built with ❤️ using the Model Context Protocol on [Nitrostack](https://nitrostack.ai). Share your MCP app on [r/mcptothemoon](https://www.reddit.com/r/mcptothemoon/).
