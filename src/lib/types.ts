@@ -137,7 +137,8 @@ export type ConsentFailureCode =
   | 'CONSENT_INVALID'
   | 'CONSENT_EXPIRED'
   | 'SCOPE_NOT_GRANTED'
-  | 'CONSENT_REVOKED';
+  | 'CONSENT_REVOKED'
+  | 'CONSENT_LEAD_MISMATCH';
 
 export const VERSION_BLOCK = {
   policy: 'v1.7',

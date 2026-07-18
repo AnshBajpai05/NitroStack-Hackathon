@@ -114,7 +114,7 @@ export type ConsentCheck = { ok: true; payload: ConsentPayload } | { ok: false; 
 export function validConsent(
   token: unknown,
   requiredScope: ConsentScope,
-  opts?: { now?: number; isRevoked?: (jti: string) => boolean },
+  opts?: { now?: number; isRevoked?: (jti: string) => boolean; leadId?: string },
 ): ConsentCheck {
   const v = verifyToken(token);
   if (!v.valid || !v.payload) return { ok: false, code: v.code ?? 'CONSENT_INVALID' };
@@ -122,6 +122,8 @@ export function validConsent(
   const now = opts?.now ?? nowSeconds();
   if (now > v.payload.exp) return { ok: false, code: 'CONSENT_EXPIRED' };
   if (opts?.isRevoked?.(v.payload.jti)) return { ok: false, code: 'CONSENT_REVOKED' };
+  // Token binding: a consent issued for one applicant must NOT unlock another's data.
+  if (opts?.leadId && v.payload.lead_id !== opts.leadId) return { ok: false, code: 'CONSENT_LEAD_MISMATCH' };
   if (!v.payload.scopes.includes(requiredScope)) return { ok: false, code: 'SCOPE_NOT_GRANTED' };
   return { ok: true, payload: v.payload };
 }
@@ -134,6 +136,7 @@ export function refusal(code: ConsentFailureCode): ConsentRefusal {
     CONSENT_EXPIRED: 'The consent_token expired (15-min TTL) — re-run record_consent',
     SCOPE_NOT_GRANTED: 'This consent_token does not grant the scope this tool needs',
     CONSENT_REVOKED: 'Consent was revoked — obtain fresh consent via record_consent',
+    CONSENT_LEAD_MISMATCH: 'This consent_token was issued for a different application — obtain consent for this lead_id',
   };
   return { error: 'CONSENT_REQUIRED', code, hint: hints[code] };
 }

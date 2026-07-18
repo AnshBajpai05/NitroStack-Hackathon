@@ -68,6 +68,16 @@ describe('consent gate — the signature feature', () => {
     expect(validConsent(token, 'BANK_STATEMENTS', { now: T0 + 60 }).ok).toBe(true);
   });
 
+  it('(f1) token bound to lead — reusing lead-A token for lead-B → CONSENT_LEAD_MISMATCH', () => {
+    const { token } = issueToken({ lead_id: 'LEAD-A', version: 'v1', now: T0 });
+    // same token, different applicant → must refuse (no cross-applicant data leak)
+    const c = validConsent(token, 'CREDIT_BUREAU', { now: T0 + 60, leadId: 'LEAD-B' });
+    expect(c.ok).toBe(false);
+    if (!c.ok) expect(c.code).toBe('CONSENT_LEAD_MISMATCH');
+    // correct lead still passes
+    expect(validConsent(token, 'CREDIT_BUREAU', { now: T0 + 60, leadId: 'LEAD-A' }).ok).toBe(true);
+  });
+
   it('(f) revoked token → CONSENT_REVOKED', () => {
     const { token, payload } = issueToken({ lead_id: 'L1', version: 'v1', now: T0 });
     const c = validConsent(token, 'CREDIT_BUREAU', { now: T0 + 60, isRevoked: (jti) => jti === payload.jti });

@@ -110,7 +110,7 @@ export function screenFraud(input: { session_id: string; lead_id: string; identi
 
 // ---------- Tool 5: pull_bureau ⚿ ----------
 export function pullBureau(input: { session_id: string; lead_id: string; consent_token: unknown; pan: string }): BureauReport | ConsentRefusal {
-  const c = validConsent(input.consent_token, 'CREDIT_BUREAU', { now: nowSeconds(), isRevoked });
+  const c = validConsent(input.consent_token, 'CREDIT_BUREAU', { now: nowSeconds(), isRevoked, leadId: input.lead_id });
   if (!c.ok) {
     store.audit(input.session_id, 'pull_bureau', 'CONSENT_GATE_BLOCKED', { lead_id: input.lead_id, required_scope: 'CREDIT_BUREAU', code: c.code });
     return refusal(c.code);
@@ -123,7 +123,7 @@ export function pullBureau(input: { session_id: string; lead_id: string; consent
 
 // ---------- Tool 6: fetch_bank_statements ⚿ ----------
 export function fetchBankStatements(input: { session_id: string; lead_id: string; consent_token: unknown; months?: number }): BankSummary | ConsentRefusal {
-  const c = validConsent(input.consent_token, 'BANK_STATEMENTS', { now: nowSeconds(), isRevoked });
+  const c = validConsent(input.consent_token, 'BANK_STATEMENTS', { now: nowSeconds(), isRevoked, leadId: input.lead_id });
   if (!c.ok) {
     store.audit(input.session_id, 'fetch_bank_statements', 'CONSENT_GATE_BLOCKED', { lead_id: input.lead_id, required_scope: 'BANK_STATEMENTS', code: c.code });
     return refusal(c.code);
