@@ -1,5 +1,4 @@
-# Vitta — agentic lending with consent built into the code
-
+# Vitta — Compliant Loan Origination as an MCP Capability Layer
 > Most "AI lending" demos are chatbots that quote EMIs. Vitta actually runs the loan — and physically refuses to touch your data without consent.
 
 ![Model Context Protocol](https://img.shields.io/badge/Model%20Context%20Protocol-MCP-blue) ![Built with Nitrostack](https://img.shields.io/badge/Built%20with-Nitrostack-0A66FF) ![Status](https://img.shields.io/badge/status-live-brightgreen) ![Track](https://img.shields.io/badge/track-BFSI%20%26%20FinTech-F5A623)
