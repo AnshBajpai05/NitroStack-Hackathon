@@ -160,3 +160,30 @@ describe('golden path — three deterministic stories', () => {
     expect(trail.count).toBeGreaterThan(0);
   });
 });
+
+describe('advance_application fast path', () => {
+  it('runs the whole post-consent chain in one call → CONDITIONAL ₹2.5L (demo)', async () => {
+    const { advanceApplication } = await import('../src/lib/engine.js');
+    store._resetAll();
+    const s = 'fastpath';
+    const q = qualifyLead({ session_id: s, purpose: 'medical emergency', amount: 300000, tenure_months: 36, employment: 'SALARIED', city: 'Kochi' });
+    const c = recordConsent({ session_id: s, lead_id: q.lead_id, consent_text_version: 'consent-v3', accepted: true, channel: 'web' });
+    if (!c.accepted) throw new Error('consent');
+    const r: any = advanceApplication({ session_id: s, lead_id: q.lead_id, consent_token: c.consent_token, pan: 'VITTA1235K', name: 'Priya Sharma', mobile: '9876543222' });
+    expect(r.error).toBeUndefined();
+    expect(r.outcome).toBe('CONDITIONAL');
+    expect(r.max_amount).toBe(250000);
+    expect(r.kyc_status).toBe('PASS');
+    expect(r.fraud_verdict).toBe('CLEAR');
+    expect(Math.round(r.foir * 100)).toBe(57);
+  });
+
+  it('fast path still enforces the consent gate (bad token → refusal)', async () => {
+    const { advanceApplication } = await import('../src/lib/engine.js');
+    store._resetAll();
+    const s = 'fastpath-gate';
+    const q = qualifyLead({ session_id: s, purpose: 'x', amount: 300000, tenure_months: 36, employment: 'SALARIED', city: 'Kochi' });
+    const r: any = advanceApplication({ session_id: s, lead_id: q.lead_id, consent_token: 'garbage', pan: 'VITTA1235K', name: 'Priya Sharma', mobile: '9876543222' });
+    expect(r.error).toBe('CONSENT_REQUIRED');
+  });
+});

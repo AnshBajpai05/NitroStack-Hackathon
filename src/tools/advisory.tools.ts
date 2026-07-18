@@ -6,9 +6,32 @@
 import { ToolDecorator as Tool, ControllerDecorator as Controller, Widget, ExecutionContext, z } from '@nitrostack/core';
 import { simulateScenario } from '../lib/simulate.js';
 import { fetchReferenceRates } from '../lib/rates.js';
+import { advanceApplication } from '../lib/engine.js';
 
 @Controller()
 export class AdvisoryTools {
+  @Tool({
+    name: 'advance_application',
+    description:
+      'FAST PATH: after record_consent, run the entire post-consent chain in ONE call — verify_kyc, screen_fraud, ' +
+      'pull_bureau (consent-gated), fetch_bank_statements (consent-gated), compute_affordability, and underwrite — and ' +
+      'return the decision. Use this right after consent instead of calling those six tools one by one. Refuses with ' +
+      '{error:"CONSENT_REQUIRED"} if the consent_token is missing, wrong-scope, or issued for a different lead.',
+    inputSchema: z.object({
+      session_id: z.string().describe('Session id from qualify_lead.'),
+      lead_id: z.string(),
+      consent_token: z.string().describe('Token from record_consent.'),
+      pan: z.string().describe('Applicant PAN.'),
+      name: z.string().describe('Applicant full name (for KYC name-match).'),
+      mobile: z.string().describe('Applicant mobile (for fraud screen).'),
+      dob: z.string().optional(),
+    }),
+  })
+  @Widget('underwriting-result')
+  async advance_application(input: any, _ctx: ExecutionContext) {
+    return advanceApplication(input);
+  }
+
   @Tool({
     name: 'simulate_scenario',
     description:

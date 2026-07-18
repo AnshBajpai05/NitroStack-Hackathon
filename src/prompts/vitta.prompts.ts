@@ -29,11 +29,11 @@ export class VittaPrompts {
           `CRITICAL: reply only in short plain-text sentences — never output JSON, a "spec", "op":"add", ` +
           `"/elements", or any self-built UI/tables/cards. The tools render their own rich cards; give one ` +
           `short sentence of narration per step.\n` +
-          `CONTINUOUS FLOW: once consent is granted, run the WHOLE remaining chain (verify_kyc → screen_fraud ` +
-          `→ pull_bureau → fetch_bank_statements → compute_affordability → underwrite → generate_offers) in ONE ` +
-          `turn without stopping or handing back to the user between tool calls. Pause ONLY for: (a) the explicit ` +
-          `consent yes/no, (b) a CONDITIONAL or REVIEW human-in-the-loop confirmation, (c) the applicant choosing ` +
-          `an offer.\n` +
+          `FAST PATH (do this): once consent is granted, call advance_application ONCE ` +
+          `(pass lead_id, consent_token, pan, name, mobile) — it runs KYC, fraud, bureau, bank, affordability and ` +
+          `underwrite in a single step and returns the decision. Then call generate_offers, then create_sanction_letter. ` +
+          `This avoids stalling. Pause ONLY for: (a) the explicit consent yes/no, (b) a CONDITIONAL or REVIEW ` +
+          `human-in-the-loop confirmation, (c) the applicant choosing an offer.\n` +
           `NEVER STOP SILENTLY: do not end your turn in the middle of the chain without a reason. Every time you stop ` +
           `you MUST end your message with a clear one-line question stating exactly what you need from me (e.g. ` +
           `"Do you consent?", "Shall I proceed past the manual review?", "Which offer would you like?"). Only ask for ` +

@@ -204,6 +204,43 @@ export function createSanctionStep(input: { session_id: string; lead_id: string;
   return sanction;
 }
 
+// ---------- Fast-path: run the whole post-consent chain in ONE call ----------
+// Collapses verify_kyc → screen_fraud → pull_bureau ⚿ → fetch_bank_statements ⚿
+// → compute_affordability → underwrite so agentic clients that cap tool-calls-per-turn
+// don't stall mid-chain. The consent gate is STILL enforced (pull/fetch refuse without
+// a valid, in-scope, lead-bound token). Returns a Decision-shaped object so the
+// underwriting-result widget renders the gauge.
+export function advanceApplication(input: {
+  session_id: string;
+  lead_id: string;
+  consent_token: unknown;
+  pan: string;
+  name: string;
+  mobile: string;
+  dob?: string;
+}): (Decision & { kyc_status: string; fraud_verdict: string; foir: number; bureau_score: number; net_income: number; existing_emi: number }) | ConsentRefusal {
+  const kyc = verifyKyc({ session_id: input.session_id, lead_id: input.lead_id, pan: input.pan, name: input.name, dob: input.dob });
+  const fraud = screenFraud({ session_id: input.session_id, lead_id: input.lead_id, identifiers: { mobile: input.mobile, pan: input.pan } });
+
+  const bureau = pullBureau({ session_id: input.session_id, lead_id: input.lead_id, consent_token: input.consent_token, pan: input.pan });
+  if ('error' in bureau) return bureau; // consent gate refusal — short-circuit
+  const bank = fetchBankStatements({ session_id: input.session_id, lead_id: input.lead_id, consent_token: input.consent_token });
+  if ('error' in bank) return bank;
+
+  const aff = computeAffordabilityStep({ session_id: input.session_id, lead_id: input.lead_id });
+  const decision = underwriteStep({ session_id: input.session_id, lead_id: input.lead_id });
+
+  return {
+    ...decision,
+    kyc_status: kyc.kyc_status,
+    fraud_verdict: fraud.verdict,
+    foir: aff.foir,
+    net_income: aff.net_income,
+    existing_emi: aff.existing_emi,
+    bureau_score: bureau.score,
+  };
+}
+
 // ---------- Tools 11 & 12: audit ----------
 export function logAuditEvent(input: { session_id: string; actor: string; event: string; payload: Record<string, unknown> }): { ack: true; seq: number } {
   return store.audit(input.session_id, input.actor, input.event, input.payload);
