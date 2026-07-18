@@ -31,6 +31,7 @@ const inr = (n?: number) => '₹' + Number(n || 0).toLocaleString('en-IN');
 export default function SanctionLetter() {
   const theme = useTheme();
   const { getToolOutput, openExternal } = useWidgetSDK();
+  const [linkHint, setLinkHint] = useState<string | null>(null); // hooks BEFORE any early return
   const d = getToolOutput<SanctionOut>();
   const isDark = theme === 'dark';
 
@@ -41,8 +42,6 @@ export default function SanctionLetter() {
 
   if (!d) return <div style={{ padding: 24, textAlign: 'center' }}>Preparing letter…</div>;
   const f = d.letter_fields || {};
-
-  const [linkHint, setLinkHint] = useState<string | null>(null);
 
   const download = () => {
     // 1) real hosted URL (server mounts GET /letters/:leadId) — works everywhere
