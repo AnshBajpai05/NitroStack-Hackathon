@@ -76,7 +76,7 @@ export function recordConsent(input: {
   scopes?: ConsentScope[];
 }):
   | { accepted: false; message: string }
-  | { accepted: true; consent_token: string; ts: string; hash: string; scopes: ConsentScope[]; expires_at: string } {
+  | { accepted: true; consent_token: string; jti: string; ts: string; hash: string; scopes: ConsentScope[]; expires_at: string } {
   const ts = new Date().toISOString();
   if (!input.accepted) {
     store.audit(input.session_id, 'record_consent', 'CONSENT_DECLINED', { lead_id: input.lead_id, version: input.consent_text_version });
@@ -88,7 +88,8 @@ export function recordConsent(input: {
   store.putConsentProof(payload.jti, { lead_id: input.lead_id, ts, channel: input.channel, version: input.consent_text_version, hash, scopes });
   store.patchCase(input.lead_id, { status: 'CONSENTED' });
   store.audit(input.session_id, 'record_consent', 'CONSENT_GRANTED', { lead_id: input.lead_id, version: input.consent_text_version, channel: input.channel, scopes, hash });
-  return { accepted: true, consent_token: token, ts, hash, scopes, expires_at: new Date((payload.exp) * 1000).toISOString() };
+  // jti is returned so revoke_consent is usable without decoding the token
+  return { accepted: true, consent_token: token, jti: payload.jti, ts, hash, scopes, expires_at: new Date(payload.exp * 1000).toISOString() };
 }
 
 // ---------- Tool 3: verify_kyc ----------

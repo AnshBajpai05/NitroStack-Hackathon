@@ -10,7 +10,8 @@ import { VittaPrompts } from './prompts/vitta.prompts.js';
 
 /**
  * VittaModule — the NBFC lending capability layer.
- * 13 Tools (12 domain + revoke_consent + health_check), 5 Resources, 5 Prompts.
+ * 16 Tools (12 golden-path + simulate_scenario + get_reference_rates + revoke_consent + health_check),
+ * 5 Resources, 5 Prompts.
  */
 @Module({
   name: 'vitta',

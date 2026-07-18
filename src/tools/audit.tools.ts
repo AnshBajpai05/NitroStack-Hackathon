@@ -38,7 +38,7 @@ export class AuditTools {
   @Tool({
     name: 'revoke_consent',
     description:
-      'DPDP withdrawal: revoke a previously issued consent by its token id (jti). After revocation, consent-gated tools refuse with CONSENT_REVOKED.',
+      'DPDP withdrawal: revoke a previously issued consent by its token id (jti — returned by record_consent). After revocation, consent-gated tools refuse with CONSENT_REVOKED.',
     inputSchema: z.object({
       session_id: z.string(),
       lead_id: z.string(),

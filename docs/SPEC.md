@@ -14,7 +14,7 @@ qualify_lead → record_consent(⚿ issuer) → verify_kyc → screen_fraud → 
 - Mobile **suffix (last 2 digits)**: `00–33 → stable salaried`, `34–66 → self-employed`, `67–99 → volatile`.
 - Fraud: mobile suffix `90–99 → REVIEW` (path E uses 99), a reserved value `→ BLOCK`, else `CLEAR`.
 - **Demo pair:** PAN `VITTA1235K` (digit 5 → CONDITIONAL), mobile `9876543222` (suffix 22 → stable salaried).
-  Story: "₹2.6L instead of ₹3L because existing EMIs put FOIR ≈ 58%."
+  Story (canonical, verified): "₹2,50,000 instead of ₹3L because existing EMIs put FOIR ≈ 57%."
 
 ## 12 TOOLS (inputs → outputs; ⚿ = consent-gated)
 1. **qualify_lead** `{purpose, amount, tenure_months, employment, city, income_band}` → `{lead_id, prelim_eligibility, next_step, intent_flag}`

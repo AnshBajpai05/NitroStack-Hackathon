@@ -20,3 +20,12 @@ uploads/
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# vendor scaffold AI-assistant skill mirrors (byte-identical to .claude/) — not our work
+.agents/
+.antigravity/
+.codex/
+.copilot/
+.cursor/
+.gemini/
+.opencode/

@@ -8,27 +8,32 @@
  *
  * Pure module: node:crypto only, no NitroStack imports, injectable clock → testable.
  */
-import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { ConsentPayload, ConsentScope, ConsentFailureCode, ConsentRefusal } from './types.js';
 
 export const CONSENT_TTL_SECONDS = 900; // 15 minutes
 export const ALL_SCOPES: ConsentScope[] = ['CREDIT_BUREAU', 'BANK_STATEMENTS', 'KYC'];
 
+/**
+ * Per-process random fallback secret. If CONSENT_SECRET is unset, tokens are
+ * still internally consistent within THIS running instance (demo never breaks)
+ * but CANNOT be forged from the public repo — unlike a hardcoded fallback.
+ * Trade-off: tokens don't survive a process restart (fine under a 15-min TTL).
+ */
+const EPHEMERAL_SECRET = randomBytes(32).toString('hex');
 let warnedDevSecret = false;
 function secret(): string {
   const s = process.env.CONSENT_SECRET;
   if (s && s.length >= 16) return s;
-  // Deterministic dev fallback so local dev + tests work without .env.
-  // The repo is public — this fallback is world-readable, so tokens signed with
-  // it are FORGEABLE. Production MUST set a strong CONSENT_SECRET.
   if (process.env.NODE_ENV === 'production' && !warnedDevSecret) {
     warnedDevSecret = true;
     console.error(
-      '[VITTA SECURITY] CONSENT_SECRET is not set in production — consent tokens are signed ' +
-        'with the public dev fallback and can be forged. Set CONSENT_SECRET in the deployment env NOW.',
+      '[VITTA SECURITY] CONSENT_SECRET is not set — using an ephemeral per-boot secret. ' +
+        'Tokens are unforgeable from the repo but will not survive a restart. ' +
+        'Set CONSENT_SECRET in the deployment env for stable tokens.',
     );
   }
-  return 'vitta-dev-consent-secret-change-in-prod';
+  return EPHEMERAL_SECRET;
 }
 
 function b64url(buf: Buffer): string {

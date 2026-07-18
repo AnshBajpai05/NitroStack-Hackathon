@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { store } from '../src/lib/store.js';
 import {
   qualifyLead, recordConsent, verifyKyc, screenFraud, pullBureau, fetchBankStatements,
-  computeAffordabilityStep, underwriteStep, generateOffersStep, createSanctionStep, getAuditTrail,
+  computeAffordabilityStep, underwriteStep, generateOffersStep, createSanctionStep, getAuditTrail, revokeConsent,
 } from '../src/lib/engine.js';
 import type { ConsentRefusal } from '../src/lib/types.js';
 
@@ -79,6 +79,24 @@ describe('golden path — three deterministic stories', () => {
     expect(decision.explanations.length).toBeGreaterThan(0);
     const offers = generateOffersStep({ session_id: s, lead_id });
     expect(offers.offers.length).toBe(0);
+  });
+
+  it('DPDP revoke round-trip: record_consent returns jti → revoke → gated tool refuses CONSENT_REVOKED', () => {
+    const s = 'sess-revoke';
+    const { lead_id, consent_token } = intake(s, 'VITTA1235K', '9876543222');
+    // token works before revoke
+    const before = pullBureau({ session_id: s, lead_id, consent_token, pan: 'VITTA1235K' });
+    expect(isRefusal(before)).toBe(false);
+    // record_consent must have exposed a jti for revocation
+    const c = recordConsent({ session_id: s, lead_id, consent_text_version: 'consent-v3', accepted: true, channel: 'web' });
+    expect(c.accepted).toBe(true);
+    if (c.accepted) {
+      expect(typeof c.jti).toBe('string');
+      revokeConsent({ session_id: s, lead_id, jti: c.jti });
+      const after = pullBureau({ session_id: s, lead_id, consent_token: c.consent_token, pan: 'VITTA1235K' });
+      expect(isRefusal(after)).toBe(true);
+      if (isRefusal(after)) expect(after.code).toBe('CONSENT_REVOKED');
+    }
   });
 
   it('D: consent-gate probe — pull_bureau with no/garbage token refuses (judge probe)', () => {
