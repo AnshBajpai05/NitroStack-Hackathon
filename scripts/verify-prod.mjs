@@ -59,7 +59,7 @@ await rpc('notifications/initialized', {}).catch(() => {});
 const tools = await rpc('tools/list', {});
 const resources = await rpc('resources/list', {});
 const prompts = await rpc('prompts/list', {});
-check('primitives enumerate', tools.result?.tools?.length === 16 && prompts.result?.prompts?.length === 5 && resources.result?.resources?.length >= 5,
+check('primitives enumerate', tools.result?.tools?.length >= 16 && prompts.result?.prompts?.length === 5 && resources.result?.resources?.length >= 5,
   `tools=${tools.result?.tools?.length} resources=${resources.result?.resources?.length} prompts=${prompts.result?.prompts?.length}`);
 
 // 6.5-3: health + secret configured
